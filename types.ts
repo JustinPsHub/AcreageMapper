@@ -26,7 +26,6 @@ export interface MapObject {
   color: string;
   opacity: number;
   visible: boolean;
-  // Computed metrics
   areaSqFt?: number;
   areaAcres?: number;
   lengthFt?: number;

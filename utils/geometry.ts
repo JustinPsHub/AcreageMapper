@@ -12,7 +12,6 @@ export const calculatePolylineLength = (points: Coordinate[]): number => {
   return length;
 };
 
-// Shoelace formula for polygon area
 export const calculatePolygonArea = (points: Coordinate[]): number => {
   if (points.length < 3) return 0;
   let area = 0;
@@ -25,7 +24,6 @@ export const calculatePolygonArea = (points: Coordinate[]): number => {
   return Math.abs(area) / 2;
 };
 
-// Returns true if point is inside polygon using ray casting
 export const isPointInPolygon = (point: Coordinate, vs: Coordinate[]): boolean => {
   let inside = false;
   for (let i = 0, j = vs.length - 1; i < vs.length; j = i++) {
@@ -42,8 +40,6 @@ export const isPointNearPolyline = (point: Coordinate, points: Coordinate[], thr
   for (let i = 0; i < points.length - 1; i++) {
     const p1 = points[i];
     const p2 = points[i + 1];
-    
-    // Distance from point to line segment
     const dist = distanceToSegment(point, p1, p2);
     if (dist <= threshold) return true;
   }

@@ -1,18 +1,20 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import MapCanvas from './components/MapCanvas';
 import Sidebar from './components/Sidebar';
 import Toolbar from './components/Toolbar';
 import CalibrationDialog from './components/CalibrationDialog';
+import HelpDialog from './components/HelpDialog';
 import { MapObject, ToolType, CalibrationData, ProjectState, Coordinate, MapObjectType } from './types';
 import { calculatePolygonArea, calculatePolylineLength } from './utils/geometry';
 
 const App: React.FC = () => {
-  // State
-  const [objects, setObjects] = useState<MapObject[]>([]);
+  const [history, setHistory] = useState<MapObject[][]>([[]]);
+  const [historyIndex, setHistoryIndex] = useState(0);
+  const objects = history[historyIndex];
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [activeTool, setActiveTool] = useState<ToolType>(ToolType.PAN);
   const [backgroundImageSrc, setBackgroundImageSrc] = useState<string | null>(null);
-  
+  const [isHelpOpen, setIsHelpOpen] = useState(false);
   const [calibration, setCalibration] = useState<CalibrationData>({
     isCalibrated: false,
     pixelsPerFoot: 1,
@@ -20,21 +22,17 @@ const App: React.FC = () => {
     point2: null,
     distanceFt: 0
   });
-
-  // Calibration Dialog State
   const [isCalibDialogOpen, setIsCalibDialogOpen] = useState(false);
   const [pendingCalibPixelDist, setPendingCalibPixelDist] = useState(0);
 
-  // Recalculate metrics when calibration or objects change
   const objectsWithMetrics = objects.map(obj => {
      if (!calibration.isCalibrated) return obj;
      const ppf = calibration.pixelsPerFoot;
-     
      if (obj.type === MapObjectType.POLYGON) {
          const areaPx = calculatePolygonArea(obj.points);
          const areaSqFt = areaPx / (ppf * ppf);
          const areaAcres = areaSqFt / 43560;
-         const lenPx = calculatePolylineLength([...obj.points, obj.points[0]]); // Perimeter
+         const lenPx = calculatePolylineLength([...obj.points, obj.points[0]]);
          return { ...obj, areaSqFt, areaAcres, lengthFt: lenPx / ppf };
      } else if (obj.type === MapObjectType.POLYLINE) {
          const lenPx = calculatePolylineLength(obj.points);
@@ -43,19 +41,34 @@ const App: React.FC = () => {
      return obj;
   });
 
-  // Handlers
+  const pushToHistory = (newObjects: MapObject[]) => {
+    const newHistory = history.slice(0, historyIndex + 1);
+    newHistory.push(newObjects);
+    setHistory(newHistory);
+    setHistoryIndex(newHistory.length - 1);
+  };
+
+  const undo = () => {
+    if (historyIndex > 0) {
+      setHistoryIndex(historyIndex - 1);
+      setSelectedId(null);
+    }
+  };
+
   const handleObjectCreated = (newObj: MapObject) => {
-    setObjects(prev => [...prev, newObj]);
-    setActiveTool(ToolType.SELECT); // Auto-switch to select after draw? optional.
+    pushToHistory([...objects, newObj]);
+    setActiveTool(ToolType.SELECT); 
     setSelectedId(newObj.id);
   };
 
   const handleUpdateObject = (id: string, updates: Partial<MapObject>) => {
-    setObjects(prev => prev.map(o => o.id === id ? { ...o, ...updates } : o));
+    const newObjects = objects.map(o => o.id === id ? { ...o, ...updates } : o);
+    pushToHistory(newObjects);
   };
 
   const handleDeleteObject = (id: string) => {
-    setObjects(prev => prev.filter(o => o.id !== id));
+    const newObjects = objects.filter(o => o.id !== id);
+    pushToHistory(newObjects);
     if (selectedId === id) setSelectedId(null);
   };
 
@@ -77,11 +90,7 @@ const App: React.FC = () => {
   };
 
   const handleSave = () => {
-      const state: ProjectState = {
-          objects,
-          calibration,
-          backgroundImageSrc
-      };
+      const state: ProjectState = { objects, calibration, backgroundImageSrc };
       const blob = new Blob([JSON.stringify(state)], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -97,7 +106,10 @@ const App: React.FC = () => {
       reader.onload = (evt) => {
           try {
               const state = JSON.parse(evt.target?.result as string) as ProjectState;
-              if (state.objects) setObjects(state.objects);
+              if (state.objects) {
+                setHistory([state.objects]);
+                setHistoryIndex(0);
+              }
               if (state.calibration) setCalibration(state.calibration);
               if (state.backgroundImageSrc) setBackgroundImageSrc(state.backgroundImageSrc);
           } catch (err) {
@@ -117,9 +129,9 @@ const App: React.FC = () => {
       reader.readAsDataURL(file);
   };
 
-  // Keyboard Shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+        if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
         if (e.key === 'Delete' || e.key === 'Backspace') {
             if (selectedId) handleDeleteObject(selectedId);
         }
@@ -127,21 +139,29 @@ const App: React.FC = () => {
              setActiveTool(ToolType.SELECT);
              setSelectedId(null);
         }
+        if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
+            e.preventDefault();
+            undo();
+        }
+        if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+            e.preventDefault();
+            handleSave();
+        }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [selectedId]);
+  }, [selectedId, historyIndex, objects, calibration, backgroundImageSrc]);
 
   return (
-    <div className="relative w-full h-full bg-gray-900">
+    <div className="relative w-full h-full bg-slate-950 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900 via-slate-950 to-black text-slate-200 font-sans selection:bg-sky-500/30">
       <Toolbar 
         activeTool={activeTool} 
         onSelectTool={setActiveTool} 
         onSave={handleSave}
         onLoad={handleLoad}
         onImageUpload={handleImageUpload}
+        onToggleHelp={() => setIsHelpOpen(true)}
       />
-      
       <Sidebar 
         objects={objectsWithMetrics} 
         selectedId={selectedId} 
@@ -151,7 +171,6 @@ const App: React.FC = () => {
         isCalibrated={calibration.isCalibrated}
         pixelsPerFoot={calibration.pixelsPerFoot}
       />
-      
       <MapCanvas 
         tool={activeTool}
         objects={objectsWithMetrics}
@@ -162,12 +181,15 @@ const App: React.FC = () => {
         onSelectObject={setSelectedId}
         onCalibrationComplete={handleCalibrationComplete}
       />
-
       <CalibrationDialog 
         isOpen={isCalibDialogOpen}
         pixelDistance={pendingCalibPixelDist}
         onConfirm={finalizeCalibration}
         onCancel={() => setIsCalibDialogOpen(false)}
+      />
+      <HelpDialog 
+        isOpen={isHelpOpen} 
+        onClose={() => setIsHelpOpen(false)} 
       />
     </div>
   );

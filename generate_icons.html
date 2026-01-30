@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Icon Generator</title>
+    <style>
+        body { font-family: sans-serif; background: #111827; color: white; text-align: center; padding: 20px; }
+        canvas { border: 1px solid #333; margin: 10px; background: transparent; }
+        button { padding: 10px 20px; background: #2563eb; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; margin-top: 20px; }
+        button:hover { background: #1d4ed8; }
+    </style>
+</head>
+<body>
+    <h1>PWA Icon Generator</h1>
+    <p>Click the button below to download the required icons for PWA installation.</p>
+    
+    <canvas id="c192" width="192" height="192"></canvas>
+    <canvas id="c512" width="512" height="512"></canvas>
+    
+    <br/>
+    <button onclick="downloadIcons()">Download Icons</button>
+
+    <script>
+        function drawIcon(ctx, size) {
+            ctx.fillStyle = '#1f2937';
+            ctx.fillRect(0, 0, size, size);
+            
+            ctx.strokeStyle = '#374151';
+            ctx.lineWidth = size * 0.02;
+            ctx.beginPath();
+            ctx.moveTo(size * 0.3, 0); ctx.lineTo(size * 0.3, size);
+            ctx.moveTo(size * 0.7, 0); ctx.lineTo(size * 0.7, size);
+            ctx.moveTo(0, size * 0.3); ctx.lineTo(size, size * 0.3);
+            ctx.moveTo(0, size * 0.7); ctx.lineTo(size, size * 0.7);
+            ctx.stroke();
+
+            ctx.fillStyle = '#10b981';
+            ctx.beginPath();
+            ctx.moveTo(size * 0.5, size * 0.2);
+            ctx.lineTo(size * 0.8, size * 0.4);
+            ctx.lineTo(size * 0.7, size * 0.8);
+            ctx.lineTo(size * 0.3, size * 0.8);
+            ctx.lineTo(size * 0.2, size * 0.4);
+            ctx.closePath();
+            ctx.fill();
+            
+            ctx.strokeStyle = '#34d399';
+            ctx.lineWidth = size * 0.03;
+            ctx.stroke();
+            
+            ctx.fillStyle = 'white';
+            ctx.font = `bold ${size * 0.15}px sans-serif`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('MAPPER', size * 0.5, size * 0.5);
+        }
+
+        const c192 = document.getElementById('c192');
+        const c512 = document.getElementById('c512');
+
+        drawIcon(c192.getContext('2d'), 192);
+        drawIcon(c512.getContext('2d'), 512);
+
+        function downloadCanvas(canvas, filename) {
+            const link = document.createElement('a');
+            link.download = filename;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }
+
+        function downloadIcons() {
+            downloadCanvas(c192, 'icon-192x192.png');
+            setTimeout(() => downloadCanvas(c512, 'icon-512x512.png'), 500);
+        }
+    </script>
+</body>
+</html>
