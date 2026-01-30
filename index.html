@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="theme-color" content="#020617" />
+    <title>Acreage Mapper</title>
+    <link rel="manifest" href="/AcreageMapper/manifest.json" />
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <script type="importmap">
+{
+  "imports": {
+    "react": "https://esm.sh/react@^19.2.4",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.4/",
+    "react/": "https://esm.sh/react@^19.2.4/",
+    "lucide-react": "https://esm.sh/lucide-react@^0.563.0",
+    "vite": "https://esm.sh/vite@^7.3.1",
+    "@vitejs/plugin-react": "https://esm.sh/@vitejs/plugin-react@^5.1.2"
+  }
+}
+</script>
+  <script type="module" crossorigin src="/AcreageMapper/assets/index-DpaZoCHG.js"></script>
+  <link rel="stylesheet" crossorigin href="/AcreageMapper/assets/index-Cs3lE6r0.css">
+</head>
+  <body class="bg-slate-950 text-slate-200 h-screen w-screen overflow-hidden selection:bg-sky-500/30">
+    <div id="root"></div>
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/service-worker.js')
+            .then(reg => console.log('SW registered'))
+            .catch(err => console.log('SW failed', err));
+        });
+      }
+    </script>
+  </body>
+</html>
