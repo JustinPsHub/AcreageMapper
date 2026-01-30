@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import L from 'leaflet';
 import html2canvas from 'html2canvas';
-import { X, Search, Check, Loader2, Layers, Mountain, Map as MapIcon, Satellite } from 'lucide-react';
+import { X, Search, Check, Loader2, Mountain, Map as MapIcon, Satellite, Locate, Navigation } from 'lucide-react';
 
 interface OSMDialogProps {
   isOpen: boolean;
@@ -17,9 +17,13 @@ const OSMDialog: React.FC<OSMDialogProps> = ({ isOpen, onClose, onImport }) => {
   const mapInstanceRef = useRef<L.Map | null>(null);
   const layerRef = useRef<L.TileLayer | null>(null);
   const overlayRef = useRef<L.TileLayer | null>(null);
+  const searchTimeoutRef = useRef<number | null>(null);
   
   const [searchQuery, setSearchQuery] = useState('');
+  const [suggestions, setSuggestions] = useState<any[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
+  const [isLocating, setIsLocating] = useState(false);
   const [isCapturing, setIsCapturing] = useState(false);
   const [baseLayer, setBaseLayer] = useState<BaseLayerType>('standard');
   const [showTopo, setShowTopo] = useState(false);
@@ -91,21 +95,62 @@ const OSMDialog: React.FC<OSMDialogProps> = ({ isOpen, onClose, onImport }) => {
     if (!isOpen && mapInstanceRef.current) {
       mapInstanceRef.current.remove();
       mapInstanceRef.current = null;
+      setSearchQuery('');
+      setSuggestions([]);
     }
   }, [isOpen]);
 
-  const handleSearch = async (e?: React.FormEvent) => {
+  // Smart Address Search Input Handler
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setSearchQuery(val);
+    
+    if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
+    
+    if (val.length > 2) {
+        // Debounce API calls
+        searchTimeoutRef.current = window.setTimeout(async () => {
+            try {
+                const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(val)}&addressdetails=1&limit=5`);
+                if (res.ok) {
+                    const data = await res.json();
+                    setSuggestions(data);
+                    setShowSuggestions(true);
+                }
+            } catch(e) {
+                console.error("Autocomplete failed", e);
+            }
+        }, 400);
+    } else {
+        setSuggestions([]);
+        setShowSuggestions(false);
+    }
+  };
+
+  const handleSelectSuggestion = (item: any) => {
+      const { lat, lon, display_name } = item;
+      setSearchQuery(display_name);
+      setSuggestions([]);
+      setShowSuggestions(false);
+      
+      if (mapInstanceRef.current) {
+          mapInstanceRef.current.setView([parseFloat(lat), parseFloat(lon)], 18);
+      }
+  };
+
+  const handleSearchSubmit = async (e?: React.FormEvent) => {
     e?.preventDefault();
     if (!searchQuery.trim()) return;
 
     setIsSearching(true);
+    setShowSuggestions(false);
     try {
       const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}`);
       const data = await response.json();
       
       if (data && data.length > 0) {
         const { lat, lon } = data[0];
-        mapInstanceRef.current?.setView([parseFloat(lat), parseFloat(lon)], 16); // Zoom closer
+        mapInstanceRef.current?.setView([parseFloat(lat), parseFloat(lon)], 16); 
       } else {
         alert('Location not found');
       }
@@ -115,6 +160,30 @@ const OSMDialog: React.FC<OSMDialogProps> = ({ isOpen, onClose, onImport }) => {
     } finally {
       setIsSearching(false);
     }
+  };
+
+  const handleLocateMe = () => {
+      if (!navigator.geolocation) {
+          alert("Geolocation is not supported by your browser");
+          return;
+      }
+
+      setIsLocating(true);
+      navigator.geolocation.getCurrentPosition(
+          (position) => {
+              const { latitude, longitude } = position.coords;
+              if (mapInstanceRef.current) {
+                  mapInstanceRef.current.setView([latitude, longitude], 18);
+              }
+              setIsLocating(false);
+          },
+          (error) => {
+              console.error(error);
+              alert("Unable to retrieve your location. Please ensure location permissions are granted.");
+              setIsLocating(false);
+          },
+          { enableHighAccuracy: true }
+      );
   };
 
   const handleCapture = async () => {
@@ -132,7 +201,6 @@ const OSMDialog: React.FC<OSMDialogProps> = ({ isOpen, onClose, onImport }) => {
         const pixelsPerFoot = 1 / feetPerPixel;
 
         // 2. Capture Image
-        // Note: useCORS is essential for Esri/OSM tiles
         const canvas = await html2canvas(mapContainerRef.current, {
             useCORS: true,
             allowTaint: true,
@@ -161,27 +229,58 @@ const OSMDialog: React.FC<OSMDialogProps> = ({ isOpen, onClose, onImport }) => {
         
         {/* Header / Search Bar */}
         <div className="absolute top-4 left-4 right-4 z-[1000] flex gap-2 pointer-events-none">
-            <div className="flex-1 flex gap-2 pointer-events-auto">
-                <form onSubmit={handleSearch} className="flex-1 flex gap-2 max-w-xl">
-                    <div className="relative flex-1">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
-                        <input 
-                            type="text" 
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            placeholder="Search location (e.g. '123 Main St, Austin TX')"
-                            className="w-full bg-slate-900/90 backdrop-blur-md border border-white/20 rounded-xl pl-10 pr-4 py-3 text-white placeholder-slate-400 shadow-xl focus:border-sky-500 outline-none"
-                        />
-                    </div>
-                    <button 
-                        type="submit"
-                        disabled={isSearching}
-                        className="bg-sky-500 hover:bg-sky-400 text-white px-5 rounded-xl font-medium transition-colors shadow-lg disabled:opacity-50"
-                    >
-                        {isSearching ? <Loader2 className="animate-spin" /> : 'Go'}
-                    </button>
-                </form>
+            <div className="flex-1 flex gap-2 pointer-events-auto max-w-2xl">
+                <button 
+                    onClick={handleLocateMe}
+                    disabled={isLocating}
+                    title="Use My Location"
+                    className="bg-slate-900/90 text-sky-400 hover:text-white hover:bg-sky-500 p-3 rounded-xl border border-white/20 shadow-lg transition-colors flex items-center justify-center disabled:opacity-50"
+                >
+                    {isLocating ? <Loader2 size={20} className="animate-spin" /> : <Locate size={20} />}
+                </button>
+
+                <div className="flex-1 relative">
+                    <form onSubmit={handleSearchSubmit} className="flex gap-2">
+                        <div className="relative flex-1">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
+                            <input 
+                                type="text" 
+                                value={searchQuery}
+                                onChange={handleInputChange}
+                                onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
+                                placeholder="Search address, city, or place..."
+                                className="w-full bg-slate-900/90 backdrop-blur-md border border-white/20 rounded-xl pl-10 pr-4 py-3 text-white placeholder-slate-400 shadow-xl focus:border-sky-500 outline-none"
+                            />
+                        </div>
+                        <button 
+                            type="submit"
+                            disabled={isSearching}
+                            className="bg-sky-500 hover:bg-sky-400 text-white px-5 rounded-xl font-medium transition-colors shadow-lg disabled:opacity-50"
+                        >
+                            {isSearching ? <Loader2 className="animate-spin" /> : 'Go'}
+                        </button>
+                    </form>
+
+                    {/* Autocomplete Dropdown */}
+                    {showSuggestions && suggestions.length > 0 && (
+                        <div className="absolute top-full left-0 right-0 mt-2 bg-slate-900/95 backdrop-blur-xl border border-white/10 rounded-xl overflow-hidden shadow-2xl z-[2000]">
+                            {suggestions.map((item, idx) => (
+                                <button
+                                    key={idx}
+                                    onClick={() => handleSelectSuggestion(item)}
+                                    className="w-full text-left px-4 py-3 text-sm text-slate-300 hover:bg-white/10 hover:text-white border-b border-white/5 last:border-0 flex items-start gap-2 transition-colors"
+                                >
+                                    <Navigation size={14} className="mt-0.5 text-sky-500 shrink-0"/>
+                                    <span className="line-clamp-1">{item.display_name}</span>
+                                </button>
+                            ))}
+                        </div>
+                    )}
+                </div>
             </div>
+
+            <div className="flex-1"></div> {/* Spacer */}
+
             <button 
                 onClick={onClose}
                 className="bg-slate-900/90 text-slate-400 hover:text-white p-3 rounded-xl border border-white/20 shadow-lg pointer-events-auto"

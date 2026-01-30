@@ -8,7 +8,9 @@ A professional, offline-first land planning and GIS tool. Design property layout
 ## ✨ Features
 
 ### 🗺️ Mapping & Import
-- **Web Map Importer**: Search any location worldwide.
+- **Web Map Importer**: 
+  - **Smart Address Search**: Autocomplete for precise location finding.
+  - **GPS Location**: One-click "Locate Me" to jump to your current position.
   - **Satellite Imagery**: High-resolution Esri World Imagery.
   - **Topography**: Overlay contour lines (OpenTopoMap) to see elevation.
   - **Auto-Calibration**: Imported maps are automatically scaled to real-world feet.
@@ -48,7 +50,7 @@ A professional, offline-first land planning and GIS tool. Design property layout
 
 2.  **Get a Map**:
     *   Click the **Globe Icon** (Web Map Import).
-    *   Search for your address (e.g., "123 Farm Lane, Texas").
+    *   Click the **Target Icon** to locate yourself, or type an address in the smart search bar.
     *   Select "Satellite" base layer and toggle "Topography" if needed.
     *   Click "Import Map".
 

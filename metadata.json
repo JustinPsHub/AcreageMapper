@@ -1,5 +1,7 @@
 {
   "name": "Acreage Mapper",
   "description": "Offline-first land planning tool. Upload satellite imagery, calibrate scale, and map fencing, pastures, and zones with precision area and length calculations.",
-  "requestFramePermissions": []
+  "requestFramePermissions": [
+    "geolocation"
+  ]
 }
