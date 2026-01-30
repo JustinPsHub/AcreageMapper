@@ -129,6 +129,46 @@ const App: React.FC = () => {
       reader.readAsDataURL(file);
   };
 
+  const handleLoadDemoProject = async () => {
+    if (objects.length > 0 && !confirm('This will overwrite your current project. Continue?')) return;
+    try {
+      const response = await fetch('/demo-project.json');
+      if (!response.ok) throw new Error('Network response was not ok');
+      const data = await response.json();
+      
+      if (data.objects) {
+          setHistory([data.objects]);
+          setHistoryIndex(0);
+      }
+      if (data.calibration) setCalibration(data.calibration);
+      if (data.backgroundImageSrc) setBackgroundImageSrc(data.backgroundImageSrc);
+      
+      setSelectedId(null);
+      setActiveTool(ToolType.SELECT);
+    } catch (e) {
+      console.error("Failed to load demo project", e);
+      alert("Could not load demo project. Make sure you are running via a local server (npm run dev).");
+    }
+  };
+
+  const handleLoadSampleMap = () => {
+      if (objects.length > 0 && !confirm('This will overwrite your current project. Continue?')) return;
+      
+      setHistory([[]]);
+      setHistoryIndex(0);
+      setCalibration({
+        isCalibrated: false,
+        pixelsPerFoot: 1,
+        point1: null,
+        point2: null,
+        distanceFt: 0
+      });
+      // Use absolute path to ensure it loads from public root
+      setBackgroundImageSrc('/sample-map.svg');
+      setSelectedId(null);
+      setActiveTool(ToolType.SELECT);
+  };
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
         if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
@@ -161,6 +201,8 @@ const App: React.FC = () => {
         onLoad={handleLoad}
         onImageUpload={handleImageUpload}
         onToggleHelp={() => setIsHelpOpen(true)}
+        onLoadDemoProject={handleLoadDemoProject}
+        onLoadSampleMap={handleLoadSampleMap}
       />
       <Sidebar 
         objects={objectsWithMetrics} 

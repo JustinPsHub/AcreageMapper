@@ -1,5 +1,5 @@
-import React from 'react';
-import { MousePointer2, Move, Hexagon, Activity, MapPin, Ruler, Download, Upload, Image as ImageIcon, HelpCircle } from 'lucide-react';
+import React, { useState } from 'react';
+import { MousePointer2, Move, Hexagon, Activity, MapPin, Ruler, Download, Upload, Image as ImageIcon, HelpCircle, FlaskConical, FileJson } from 'lucide-react';
 import { ToolType } from '../types';
 
 interface ToolbarProps {
@@ -9,9 +9,15 @@ interface ToolbarProps {
   onLoad: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onImageUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onToggleHelp: () => void;
+  onLoadDemoProject: () => void;
+  onLoadSampleMap: () => void;
 }
 
-const Toolbar: React.FC<ToolbarProps> = ({ activeTool, onSelectTool, onSave, onLoad, onImageUpload, onToggleHelp }) => {
+const Toolbar: React.FC<ToolbarProps> = ({ 
+  activeTool, onSelectTool, onSave, onLoad, onImageUpload, onToggleHelp,
+  onLoadDemoProject, onLoadSampleMap
+}) => {
+  const [showDemoMenu, setShowDemoMenu] = useState(false);
   
   const tools = [
     { id: ToolType.SELECT, icon: MousePointer2, label: 'Select' },
@@ -54,6 +60,7 @@ const Toolbar: React.FC<ToolbarProps> = ({ activeTool, onSelectTool, onSave, onL
         <div className="flex gap-1 items-center pr-1">
             <ToolButton tool={{ id: ToolType.CALIBRATE, icon: Ruler, label: 'Scale' }} />
             <div className="w-px h-6 bg-white/10 mx-2"></div>
+            
             <label className="relative p-2 rounded-full text-slate-400 hover:text-white hover:bg-white/10 cursor-pointer transition-colors group">
                 <ImageIcon size={20} />
                 <input type="file" accept="image/*" onChange={onImageUpload} className="hidden" />
@@ -61,6 +68,38 @@ const Toolbar: React.FC<ToolbarProps> = ({ activeTool, onSelectTool, onSave, onL
                     Upload Map
                 </span>
             </label>
+            
+            <div className="relative">
+                <button 
+                  onClick={() => setShowDemoMenu(!showDemoMenu)}
+                  className={`p-2 rounded-full transition-colors group ${showDemoMenu ? 'text-white bg-white/10' : 'text-slate-400 hover:text-white hover:bg-white/10'}`}
+                >
+                  <FlaskConical size={20} />
+                  <span className="absolute -bottom-10 left-1/2 transform -translate-x-1/2 bg-slate-900/90 text-white text-[10px] font-medium px-2 py-1 rounded shadow-lg opacity-0 group-hover:opacity-100 transition-all translate-y-2 group-hover:translate-y-0 whitespace-nowrap pointer-events-none z-50 border border-white/10 backdrop-blur-md">
+                        Demos
+                    </span>
+                </button>
+                
+                {showDemoMenu && (
+                  <div className="absolute top-12 left-1/2 transform -translate-x-1/2 bg-slate-900/95 backdrop-blur-xl border border-white/10 rounded-xl shadow-xl p-1 flex flex-col gap-1 min-w-[140px] z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+                    <button 
+                      onClick={() => { onLoadSampleMap(); setShowDemoMenu(false); }}
+                      className="flex items-center gap-2 px-3 py-2 text-xs font-medium text-slate-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors text-left"
+                    >
+                      <ImageIcon size={14} className="text-sky-400"/>
+                      Sample Map Only
+                    </button>
+                    <button 
+                      onClick={() => { onLoadDemoProject(); setShowDemoMenu(false); }}
+                      className="flex items-center gap-2 px-3 py-2 text-xs font-medium text-slate-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors text-left"
+                    >
+                      <FileJson size={14} className="text-emerald-400"/>
+                      Full Demo Project
+                    </button>
+                  </div>
+                )}
+            </div>
+
             <button onClick={onSave} className="relative p-2 rounded-full text-slate-400 hover:text-white hover:bg-white/10 transition-colors group">
               <Download size={20} />
                <span className="absolute -bottom-10 left-1/2 transform -translate-x-1/2 bg-slate-900/90 text-white text-[10px] font-medium px-2 py-1 rounded shadow-lg opacity-0 group-hover:opacity-100 transition-all translate-y-2 group-hover:translate-y-0 whitespace-nowrap pointer-events-none z-50 border border-white/10 backdrop-blur-md">
@@ -74,6 +113,7 @@ const Toolbar: React.FC<ToolbarProps> = ({ activeTool, onSelectTool, onSave, onL
                     Load Project
                 </span>
             </label>
+            <div className="w-px h-6 bg-white/10 mx-2"></div>
             <button onClick={onToggleHelp} className="relative p-2 rounded-full text-slate-400 hover:text-white hover:bg-white/10 transition-colors group">
               <HelpCircle size={20} />
                <span className="absolute -bottom-10 left-1/2 transform -translate-x-1/2 bg-slate-900/90 text-white text-[10px] font-medium px-2 py-1 rounded shadow-lg opacity-0 group-hover:opacity-100 transition-all translate-y-2 group-hover:translate-y-0 whitespace-nowrap pointer-events-none z-50 border border-white/10 backdrop-blur-md">
@@ -82,6 +122,7 @@ const Toolbar: React.FC<ToolbarProps> = ({ activeTool, onSelectTool, onSave, onL
             </button>
         </div>
       </div>
+      {showDemoMenu && <div className="fixed inset-0 z-40" onClick={() => setShowDemoMenu(false)}></div>}
     </div>
   );
 };
