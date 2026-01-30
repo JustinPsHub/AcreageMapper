@@ -175,7 +175,6 @@ const App: React.FC = () => {
         tool={activeTool}
         objects={objectsWithMetrics}
         backgroundImageSrc={backgroundImageSrc}
-        calibration={calibration}
         selectedId={selectedId}
         onObjectCreated={handleObjectCreated}
         onSelectObject={setSelectedId}

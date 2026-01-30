@@ -1,12 +1,11 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react';
-import { Coordinate, MapObject, ToolType, MapObjectType, CalibrationData } from '../types';
+import { Coordinate, MapObject, ToolType, MapObjectType } from '../types';
 import { isPointInPolygon, isPointNearPolyline, calculateDistance } from '../utils/geometry';
 
 interface MapCanvasProps {
   tool: ToolType;
   objects: MapObject[];
   backgroundImageSrc: string | null;
-  calibration: CalibrationData;
   selectedId: string | null;
   onObjectCreated: (obj: MapObject) => void;
   onSelectObject: (id: string | null) => void;
