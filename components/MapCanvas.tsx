@@ -33,13 +33,30 @@ const MapCanvas: React.FC<MapCanvasProps> = ({
       img.onload = () => {
         setBgImage(img);
         if (containerRef.current) {
-           const cx = (containerRef.current.clientWidth - img.width) / 2;
-           const cy = (containerRef.current.clientHeight - img.height) / 2;
+           const containerW = containerRef.current.clientWidth;
+           const containerH = containerRef.current.clientHeight;
+           
+           // Calculate scale to fit image within container with some padding (0.9)
+           // If image is smaller than container, stick to scale 1 (or allow zoom in if preferred)
+           // Here we limit max initial scale to 1 to avoid blurry upscaling, but allow downscaling
+           const scaleX = containerW / img.width;
+           const scaleY = containerH / img.height;
+           const newScale = Math.min(scaleX, scaleY, 1) * 0.95; 
+
+           // Calculate offset to center the image at the new scale
+           // offset corresponds to the screen position of the world origin (0,0)
+           const cx = (containerW - img.width * newScale) / 2;
+           const cy = (containerH - img.height * newScale) / 2;
+           
+           setScale(newScale);
            setOffset({ x: cx, y: cy });
         }
       };
     } else {
         setBgImage(null);
+        // Reset view if map is cleared, optional
+        setOffset({ x: 0, y: 0 });
+        setScale(1);
     }
   }, [backgroundImageSrc]);
 
@@ -63,7 +80,9 @@ const MapCanvas: React.FC<MapCanvasProps> = ({
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
+    // Handle resizing
     if (containerRef.current) {
+        // Ensure canvas buffer matches display size
         canvas.width = containerRef.current.clientWidth;
         canvas.height = containerRef.current.clientHeight;
     }
@@ -71,25 +90,30 @@ const MapCanvas: React.FC<MapCanvasProps> = ({
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.save();
     
+    // Draw Background
     if (bgImage) {
         const screenPos = worldToScreen(0, 0);
         ctx.drawImage(bgImage, screenPos.x, screenPos.y, bgImage.width * scale, bgImage.height * scale);
     } else {
+        // Draw Grid
         ctx.strokeStyle = '#1e293b';
         ctx.lineWidth = 0.5;
         const gridSize = 50 * scale;
-        const offsetX = offset.x % gridSize;
-        const offsetY = offset.y % gridSize;
+        // Calculate grid offset based on pan (offset)
+        const startX = offset.x % gridSize;
+        const startY = offset.y % gridSize;
+        
         ctx.beginPath();
-        for (let x = offsetX; x < canvas.width; x += gridSize) {
+        for (let x = startX; x < canvas.width; x += gridSize) {
             ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height);
         }
-        for (let y = offsetY; y < canvas.height; y += gridSize) {
+        for (let y = startY; y < canvas.height; y += gridSize) {
             ctx.moveTo(0, y); ctx.lineTo(canvas.width, y);
         }
         ctx.stroke();
     }
 
+    // Draw Objects
     objects.forEach(obj => {
         if (!obj.visible) return;
         ctx.beginPath();
@@ -131,6 +155,7 @@ const MapCanvas: React.FC<MapCanvasProps> = ({
         }
     });
 
+    // Draw Draft (Current Drawing)
     if (draftPoints.length > 0) {
         ctx.beginPath();
         const start = worldToScreen(draftPoints[0].x, draftPoints[0].y);
@@ -146,6 +171,8 @@ const MapCanvas: React.FC<MapCanvasProps> = ({
         ctx.strokeStyle = '#fbbf24';
         ctx.lineWidth = 2;
         ctx.stroke();
+        
+        // Draw vertices of draft
         draftPoints.forEach(p => {
             const sp = worldToScreen(p.x, p.y);
             ctx.beginPath();
@@ -163,15 +190,20 @@ const MapCanvas: React.FC<MapCanvasProps> = ({
     e.preventDefault();
     const zoomSensitivity = 0.001;
     const delta = -e.deltaY * zoomSensitivity;
-    const newScale = Math.min(Math.max(0.1, scale * (1 + delta)), 20);
+    // Limit zoom
+    const newScale = Math.min(Math.max(0.05, scale * (1 + delta)), 20);
+    
     const rect = canvasRef.current!.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
+    
+    // Zoom towards mouse pointer
     const worldPos = screenToWorld(x, y);
     const newOffset = {
         x: x - worldPos.x * newScale,
         y: y - worldPos.y * newScale
     };
+    
     setScale(newScale);
     setOffset(newOffset);
   };
@@ -190,15 +222,18 @@ const MapCanvas: React.FC<MapCanvasProps> = ({
 
     if (tool === ToolType.SELECT) {
         let foundId: string | null = null;
+        // Hit detection
         for (let i = objects.length - 1; i >= 0; i--) {
             const obj = objects[i];
             if (obj.type === MapObjectType.POINT) {
                 const dist = calculateDistance(worldPos, obj.points[0]);
-                if (dist < 10 / scale) { foundId = obj.id; break; }
+                // Hit radius for points
+                if (dist < 15 / scale) { foundId = obj.id; break; }
             } else if (obj.type === MapObjectType.POLYGON) {
                 if (isPointInPolygon(worldPos, obj.points)) { foundId = obj.id; break; }
             } else if (obj.type === MapObjectType.POLYLINE) {
-                if (isPointNearPolyline(worldPos, obj.points, 5 / scale)) { foundId = obj.id; break; }
+                // Tolerance for line selection
+                if (isPointNearPolyline(worldPos, obj.points, 10 / scale)) { foundId = obj.id; break; }
             }
         }
         onSelectObject(foundId);
@@ -229,13 +264,15 @@ const MapCanvas: React.FC<MapCanvasProps> = ({
     const rect = canvasRef.current!.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
-    const worldPos = screenToWorld(x, y);
-    setCursorPos(worldPos);
+    
     if (isDragging) {
         setOffset({
             x: e.clientX - dragStart.x,
             y: e.clientY - dragStart.y
         });
+    } else {
+        const worldPos = screenToWorld(x, y);
+        setCursorPos(worldPos);
     }
   };
 
@@ -293,7 +330,7 @@ const MapCanvas: React.FC<MapCanvasProps> = ({
        />
        <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 pointer-events-none">
           <div className="bg-slate-900/80 backdrop-blur-md text-slate-200 text-xs font-medium px-4 py-2 rounded-full border border-slate-700/50 shadow-lg flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-sky-500 animate-pulse"></span>
+            <span className={`w-2 h-2 rounded-full animate-pulse ${tool === ToolType.SELECT ? 'bg-sky-500' : 'bg-emerald-500'}`}></span>
             {tool === ToolType.SELECT && "Click object to select"}
             {tool === ToolType.PAN && "Drag to pan • Scroll to zoom"}
             {(tool === ToolType.DRAW_POLYGON || tool === ToolType.DRAW_POLYLINE) && "Click to add point • Right-click to finish"}
