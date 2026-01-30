@@ -61,7 +61,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                       {obj.name}
                     </span>
                     <span className="text-[10px] text-slate-500 truncate group-hover:text-slate-400 transition-colors">
-                      {obj.type === 'POLYGON' ? 'Zone' : obj.type === 'POLYLINE' ? 'Fence' : 'Point'}
+                      {obj.type === MapObjectType.POLYGON ? 'Zone' : obj.type === MapObjectType.POLYLINE ? 'Fence' : 'Point'}
                     </span>
                 </div>
               </div>
@@ -124,7 +124,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                 </div>
               </div>
               <div className="pt-4 border-t border-white/5 space-y-2">
-                 {selectedObject.type === 'POLYGON' && (
+                 {selectedObject.type === MapObjectType.POLYGON && (
                    <>
                      <div className="flex justify-between text-sm items-center p-2.5 bg-black/20 rounded-xl border border-white/5">
                         <span className="text-slate-400 text-xs">Area (sq ft)</span>
@@ -136,13 +136,13 @@ const Sidebar: React.FC<SidebarProps> = ({
                      </div>
                    </>
                  )}
-                 {(selectedObject.type === 'POLYLINE' || selectedObject.type === 'POLYGON') && (
+                 {(selectedObject.type === MapObjectType.POLYLINE || selectedObject.type === MapObjectType.POLYGON) && (
                    <div className="flex justify-between text-sm items-center p-2.5 bg-black/20 rounded-xl border border-white/5">
                       <span className="text-slate-400 text-xs">Length (ft)</span>
                       <span className="text-white font-mono font-medium">{selectedObject.lengthFt?.toLocaleString(undefined, { maximumFractionDigits: 1 }) ?? '-'}</span>
                    </div>
                  )}
-                 {selectedObject.type === 'POINT' && (
+                 {selectedObject.type === MapObjectType.POINT && (
                    <div className="text-xs text-slate-500 italic text-center py-2">Location marker</div>
                  )}
               </div>

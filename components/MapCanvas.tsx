@@ -14,7 +14,7 @@ interface MapCanvasProps {
 }
 
 const MapCanvas: React.FC<MapCanvasProps> = ({
-  tool, objects, backgroundImageSrc, calibration, selectedId,
+  tool, objects, backgroundImageSrc, selectedId,
   onObjectCreated, onSelectObject, onCalibrationComplete
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
