@@ -3,7 +3,7 @@
 
 A professional, offline-first land planning and GIS tool. Design property layouts, calculate acreage, estimate fencing costs, and analyze terrain—all directly in your browser.
 
-![License](https://img.shields.io/badge/license-MIT-blue.svg) ![React](https://img.shields.io/badge/react-v19-blue) ![TypeScript](https://img.shields.io/badge/typescript-v5-blue)
+![License](https://img.shields.io/badge/license-MIT-blue.svg) ![React](https://img.shields.io/badge/react-v18-blue) ![TypeScript](https://img.shields.io/badge/typescript-v5-blue)
 
 ## ✨ Features
 
@@ -38,19 +38,30 @@ A professional, offline-first land planning and GIS tool. Design property layout
 
 ## 🚀 Quick Start Guide
 
-1.  **Get a Map**:
+1.  **Installation**:
+    ```bash
+    git clone https://github.com/JustinPsHub/AcreageMapper.git
+    cd AcreageMapper
+    npm install
+    npm run dev
+    ```
+
+2.  **Get a Map**:
     *   Click the **Globe Icon** (Web Map Import).
     *   Search for your address (e.g., "123 Farm Lane, Texas").
     *   Select "Satellite" base layer and toggle "Topography" if needed.
     *   Click "Import Map".
-2.  **Draw**:
+
+3.  **Draw**:
     *   Select **Zone** (Hexagon) to trace a pasture. Right-click to finish.
     *   Select **Fence** (Activity Line) to draw boundaries.
-3.  **Assign Materials**:
+
+4.  **Assign Materials**:
     *   Click the **Package Icon** to open Material Manager.
     *   Create a material (e.g., "T-Post Fence", Linear, $2.00).
     *   Select your drawn fence and choose the material from the dropdown in the sidebar.
-4.  **Analyze**:
+
+5.  **Analyze**:
     *   Select **Slope** tool (Trending Down). Click Top of hill -> Click Bottom of hill.
     *   Toggle "Water Flow Viz" in the sidebar to see drainage patterns.
 
