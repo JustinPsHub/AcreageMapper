@@ -1,5 +1,6 @@
+
 import React, { useState } from 'react';
-import { MousePointer2, Move, Hexagon, Activity, MapPin, Ruler, Download, Upload, Image as ImageIcon, HelpCircle, FlaskConical, FileJson } from 'lucide-react';
+import { MousePointer2, Move, Hexagon, Activity, MapPin, Ruler, Download, Upload, Image as ImageIcon, HelpCircle, FlaskConical, FileJson, Sun, Package, Globe, TrendingDown } from 'lucide-react';
 import { ToolType } from '../types';
 
 interface ToolbarProps {
@@ -11,11 +12,13 @@ interface ToolbarProps {
   onToggleHelp: () => void;
   onLoadDemoProject: () => void;
   onLoadSampleMap: () => void;
+  onOpenMaterials: () => void;
+  onOpenOSM: () => void;
 }
 
 const Toolbar: React.FC<ToolbarProps> = ({ 
   activeTool, onSelectTool, onSave, onLoad, onImageUpload, onToggleHelp,
-  onLoadDemoProject, onLoadSampleMap
+  onLoadDemoProject, onLoadSampleMap, onOpenMaterials, onOpenOSM
 }) => {
   const [showDemoMenu, setShowDemoMenu] = useState(false);
   
@@ -28,6 +31,7 @@ const Toolbar: React.FC<ToolbarProps> = ({
     { id: ToolType.DRAW_POLYGON, icon: Hexagon, label: 'Zone' },
     { id: ToolType.DRAW_POLYLINE, icon: Activity, label: 'Fence' },
     { id: ToolType.DRAW_POINT, icon: MapPin, label: 'Point' },
+    { id: ToolType.DRAW_SLOPE, icon: TrendingDown, label: 'Slope' },
   ];
 
   const ToolButton = ({ tool }: { tool: { id: ToolType, icon: any, label: string } }) => (
@@ -58,14 +62,29 @@ const Toolbar: React.FC<ToolbarProps> = ({
         </div>
         <div className="w-px h-6 bg-white/10 mx-2"></div>
         <div className="flex gap-1 items-center pr-1">
+            <ToolButton tool={{ id: ToolType.SUN_ANALYSIS, icon: Sun, label: 'Solar' }} />
+            <button onClick={onOpenMaterials} className="relative p-2 rounded-full text-slate-400 hover:text-white hover:bg-white/10 transition-colors group">
+                <Package size={20} />
+                <span className="absolute -bottom-10 left-1/2 transform -translate-x-1/2 bg-slate-900/90 text-white text-[10px] font-medium px-2 py-1 rounded shadow-lg opacity-0 group-hover:opacity-100 transition-all translate-y-2 group-hover:translate-y-0 whitespace-nowrap pointer-events-none z-50 border border-white/10 backdrop-blur-md">
+                    Materials
+                </span>
+            </button>
             <ToolButton tool={{ id: ToolType.CALIBRATE, icon: Ruler, label: 'Scale' }} />
+            
             <div className="w-px h-6 bg-white/10 mx-2"></div>
             
+            <button onClick={onOpenOSM} className="relative p-2 rounded-full text-slate-400 hover:text-white hover:bg-white/10 transition-colors group">
+                <Globe size={20} />
+                <span className="absolute -bottom-10 left-1/2 transform -translate-x-1/2 bg-slate-900/90 text-white text-[10px] font-medium px-2 py-1 rounded shadow-lg opacity-0 group-hover:opacity-100 transition-all translate-y-2 group-hover:translate-y-0 whitespace-nowrap pointer-events-none z-50 border border-white/10 backdrop-blur-md">
+                    Web Map Import
+                </span>
+            </button>
+
             <label className="relative p-2 rounded-full text-slate-400 hover:text-white hover:bg-white/10 cursor-pointer transition-colors group">
                 <ImageIcon size={20} />
                 <input type="file" accept="image/*" onChange={onImageUpload} className="hidden" />
                  <span className="absolute -bottom-10 left-1/2 transform -translate-x-1/2 bg-slate-900/90 text-white text-[10px] font-medium px-2 py-1 rounded shadow-lg opacity-0 group-hover:opacity-100 transition-all translate-y-2 group-hover:translate-y-0 whitespace-nowrap pointer-events-none z-50 border border-white/10 backdrop-blur-md">
-                    Upload Map
+                    Upload File
                 </span>
             </label>
             

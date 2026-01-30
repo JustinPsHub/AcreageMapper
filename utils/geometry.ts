@@ -1,3 +1,4 @@
+
 import { Coordinate } from '../types';
 
 export const calculateDistance = (p1: Coordinate, p2: Coordinate): number => {
@@ -53,4 +54,18 @@ const distanceToSegment = (p: Coordinate, v: Coordinate, w: Coordinate): number 
   t = Math.max(0, Math.min(1, t));
   const projection = { x: v.x + t * (w.x - v.x), y: v.y + t * (w.y - v.y) };
   return calculateDistance(p, projection);
+};
+
+export const findNearestPoint = (target: Coordinate, points: Coordinate[], threshold: number): Coordinate | null => {
+  let nearest: Coordinate | null = null;
+  let minDist = threshold;
+
+  for (const p of points) {
+    const dist = calculateDistance(target, p);
+    if (dist < minDist) {
+      minDist = dist;
+      nearest = p;
+    }
+  }
+  return nearest;
 };
