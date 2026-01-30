@@ -1,40 +1,42 @@
 {
   "objects": [
     {
-      "id": "demo-zone-1",
+      "id": "demo-zone-barn",
       "type": "POLYGON",
-      "name": "Grazing Area",
+      "name": "Barn Perimeter",
       "points": [
-        { "x": 100, "y": 100 },
-        { "x": 500, "y": 100 },
-        { "x": 500, "y": 400 },
-        { "x": 100, "y": 400 }
-      ],
-      "color": "#10b981",
-      "opacity": 0.4,
-      "visible": true
-    },
-    {
-      "id": "demo-fence-1",
-      "type": "POLYLINE",
-      "name": "Roadside Fence",
-      "points": [
-        { "x": 50, "y": 550 },
-        { "x": 300, "y": 500 },
-        { "x": 600, "y": 550 }
-      ],
-      "color": "#f59e0b",
-      "opacity": 1,
-      "visible": true
-    },
-    {
-      "id": "demo-point-1",
-      "type": "POINT",
-      "name": "Main Gate",
-      "points": [
-        { "x": 300, "y": 500 }
+        { "x": 350, "y": 150 },
+        { "x": 650, "y": 150 },
+        { "x": 650, "y": 350 },
+        { "x": 350, "y": 350 }
       ],
       "color": "#ef4444",
+      "opacity": 0.3,
+      "visible": true
+    },
+    {
+      "id": "demo-zone-pond",
+      "type": "POLYGON",
+      "name": "Pond Exclusion",
+      "points": [
+        { "x": 800, "y": 180 },
+        { "x": 1000, "y": 180 },
+        { "x": 1000, "y": 320 },
+        { "x": 800, "y": 320 }
+      ],
+      "color": "#38bdf8",
+      "opacity": 0.3,
+      "visible": true
+    },
+    {
+      "id": "demo-fence-road",
+      "type": "POLYLINE",
+      "name": "Front Fence",
+      "points": [
+        { "x": 50, "y": 650 },
+        { "x": 1150, "y": 650 }
+      ],
+      "color": "#f59e0b",
       "opacity": 1,
       "visible": true
     }
@@ -46,5 +48,5 @@
     "point2": { "x": 250, "y": 750 },
     "distanceFt": 100
   },
-  "backgroundImageSrc": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAwIiBoZWlnaHQ9IjYwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZGVmcz48cGF0dGVybiBpZD0iZ3JpZCIgd2lkdGg9IjUwIiBoZWlnaHQ9IjUwIiBwYXR0ZXJuVW5pdHM9InVzZXJTcGFjZU9uVXNlIj48cGF0aCBkPSJNMCAwIEw1MCAwIEwwIDUwIFoiIGZpbGw9IiMxZTI5M2IiIG9wYWNpdHk9IjAuMSIvPjwvcGF0dGVybj48L2RlZnM+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0iIzAyMDYxNyIvPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiLz48dGV4dCB4PSI1MCUiIHk9IjUwJSIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMjQiIGZpbGw9IiM5NDc2MDAiIHRleHQtYW5jaG9yPSJtaWRkbGUiPkRlbW8gTWFwIChEYXJrIE1vZGUpPC90ZXh0Pjwvc3ZnPg=="
+  "backgroundImageSrc": "/sample-map.svg"
 }
