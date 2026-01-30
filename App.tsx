@@ -132,8 +132,9 @@ const App: React.FC = () => {
   const handleLoadDemoProject = async () => {
     if (objects.length > 0 && !confirm('This will overwrite your current project. Continue?')) return;
     try {
-      const response = await fetch('/demo-project.json');
-      if (!response.ok) throw new Error('Network response was not ok');
+      // Use relative path to support base URL (e.g. /AcreageMapper/)
+      const response = await fetch('./demo-project.json');
+      if (!response.ok) throw new Error(`Network response was not ok: ${response.statusText}`);
       const data = await response.json();
       
       if (data.objects) {
@@ -147,7 +148,7 @@ const App: React.FC = () => {
       setActiveTool(ToolType.SELECT);
     } catch (e) {
       console.error("Failed to load demo project", e);
-      alert("Could not load demo project. Make sure you are running via a local server (npm run dev).");
+      alert("Could not load demo project. Make sure the file 'demo-project.json' exists in the public folder and you are accessing it correctly.");
     }
   };
 
@@ -163,8 +164,8 @@ const App: React.FC = () => {
         point2: null,
         distanceFt: 0
       });
-      // Use absolute path to ensure it loads from public root
-      setBackgroundImageSrc('/sample-map.svg');
+      // Use relative path to ensure it loads from current base path
+      setBackgroundImageSrc('./sample-map.svg');
       setSelectedId(null);
       setActiveTool(ToolType.SELECT);
   };

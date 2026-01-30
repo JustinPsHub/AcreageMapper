@@ -48,5 +48,5 @@
     "point2": { "x": 250, "y": 750 },
     "distanceFt": 100
   },
-  "backgroundImageSrc": "/sample-map.svg"
+  "backgroundImageSrc": "./sample-map.svg"
 }
